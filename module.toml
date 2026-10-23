@@ -1,0 +1,10 @@
+name = "blvm-payment"
+version = "0.1.0"
+description = "Payment requests. Own state machine. Chain reads use the node API."
+author = "Bitcoin Commons Contributors"
+entry_point = "blvm-payment"
+
+capabilities = [
+    "read_blockchain",
+    "register_rpc_endpoint",
+]

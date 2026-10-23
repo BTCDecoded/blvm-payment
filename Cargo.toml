@@ -1,0 +1,46 @@
+[package]
+name = "blvm-payment"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+authors = ["Bitcoin Commons Contributors"]
+description = "Payment request module. Loaded by default. Not linked into the blvm binary."
+license = "MIT"
+repository = "https://github.com/BTCDecoded/blvm-payment"
+homepage = "https://btcdecoded.org"
+keywords = ["bitcoin", "payment", "module"]
+categories = ["cryptography::cryptocurrencies"]
+
+[[bin]]
+name = "blvm-payment"
+path = "src/main.rs"
+
+[lib]
+name = "blvm_payment"
+path = "src/lib.rs"
+
+[dependencies]
+blvm-node = { version = ">=0.1, <1", features = ["sled", "bip70-http", "ctv"] }
+blvm-sdk = { version = ">=0.1, <1", default-features = false, features = ["node"] }
+blvm-sdk-macros = { version = ">=0.1, <1" }
+
+tokio = { version = "1.48", features = ["rt-multi-thread", "macros", "sync"] }
+serde_json = "1.0"
+anyhow = "1.0"
+async-trait = "=0.1.75"
+tracing = "0.1"
+
+[dev-dependencies]
+tempfile = "=3.8.1"
+
+[patch.crates-io]
+quinn-proto = { git = "https://github.com/quinn-rs/quinn", tag = "quinn-proto-0.11.15" }
+blvm-node = { path = "../blvm-node" }
+blvm-sdk = { path = "../blvm-sdk" }
+blvm-sdk-macros = { path = "../blvm-sdk/crates/blvm-sdk-macros" }
+blvm-protocol = { path = "../blvm-protocol" }
+blvm-consensus = { path = "../blvm-consensus" }
+blvm-primitives = { path = "../blvm-primitives" }
+blvm-secp256k1 = { path = "../blvm-secp256k1" }
+blvm-spec-lock = { path = "../blvm-spec-lock" }
+blvm-muhash = { path = "../blvm-muhash" }
