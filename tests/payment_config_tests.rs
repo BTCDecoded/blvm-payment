@@ -93,14 +93,13 @@ async fn test_payment_config_validation_http_requires_feature() {
 #[tokio::test]
 async fn test_payment_config_validation_http_requires_rest_api() {
     // Test HTTP also requires rest-api feature
-    let config = PaymentConfig {
-        p2p_enabled: false,
-        http_enabled: true,
-        ..Default::default()
-    };
-
     #[cfg(not(feature = "rest-api"))]
     {
+        let config = PaymentConfig {
+            p2p_enabled: false,
+            http_enabled: true,
+            ..Default::default()
+        };
         let result = PaymentProcessor::new(config.clone());
         assert!(result.is_err(), "HTTP should require rest-api feature flag");
         if let Err(PaymentError::FeatureNotEnabled(_)) = result {

@@ -8,8 +8,6 @@
 //! - Instant proof (not instant settlement) functionality
 
 use blvm_node::config::PaymentConfig;
-#[cfg(feature = "ctv")]
-use blvm_payment::engine::covenant::{CovenantEngine, CovenantProof};
 use blvm_payment::engine::processor::PaymentProcessor;
 use blvm_payment::engine::settlement::SettlementMonitor;
 use blvm_payment::engine::state_machine::{PaymentState, PaymentStateMachine};
@@ -39,7 +37,7 @@ fn create_test_outputs_unique(salt: u64) -> Vec<PaymentOutput> {
 /// Test payment request creation
 #[tokio::test]
 async fn test_payment_request_creation() {
-    let temp_dir = TempDir::new().unwrap();
+    let _temp_dir = TempDir::new().unwrap();
     let config = PaymentConfig::default();
     let processor =
         Arc::new(PaymentProcessor::new(config).expect("Failed to create payment processor"));
@@ -78,7 +76,7 @@ async fn test_payment_request_creation() {
 #[tokio::test]
 #[cfg(feature = "ctv")]
 async fn test_covenant_proof_creation() {
-    let temp_dir = TempDir::new().unwrap();
+    let _temp_dir = TempDir::new().unwrap();
     let config = PaymentConfig::default();
     let processor =
         Arc::new(PaymentProcessor::new(config).expect("Failed to create payment processor"));
@@ -118,14 +116,14 @@ async fn test_covenant_proof_creation() {
         PaymentState::ProofCreated { request_id, .. } => {
             assert_eq!(request_id, payment_id);
         }
-        _ => panic!("Expected ProofCreated state, got {:?}", state),
+        _ => panic!("Expected ProofCreated state, got {state:?}"),
     }
 }
 
 /// Test payment state transitions
 #[tokio::test]
 async fn test_payment_state_transitions() {
-    let temp_dir = TempDir::new().unwrap();
+    let _temp_dir = TempDir::new().unwrap();
     let config = PaymentConfig::default();
     let processor =
         Arc::new(PaymentProcessor::new(config).expect("Failed to create payment processor"));
@@ -199,7 +197,7 @@ async fn test_payment_state_transitions() {
 /// Test payment failure state
 #[tokio::test]
 async fn test_payment_failure() {
-    let temp_dir = TempDir::new().unwrap();
+    let _temp_dir = TempDir::new().unwrap();
     let config = PaymentConfig::default();
     let processor =
         Arc::new(PaymentProcessor::new(config).expect("Failed to create payment processor"));
@@ -239,7 +237,7 @@ async fn test_payment_failure() {
 /// Test listing all payments
 #[tokio::test]
 async fn test_list_payments() {
-    let temp_dir = TempDir::new().unwrap();
+    let _temp_dir = TempDir::new().unwrap();
     let config = PaymentConfig::default();
     let processor =
         Arc::new(PaymentProcessor::new(config).expect("Failed to create payment processor"));
@@ -277,7 +275,7 @@ async fn test_list_payments() {
 #[tokio::test]
 #[cfg(feature = "ctv")]
 async fn test_instant_proof_functionality() {
-    let temp_dir = TempDir::new().unwrap();
+    let _temp_dir = TempDir::new().unwrap();
     let config = PaymentConfig::default();
     let processor =
         Arc::new(PaymentProcessor::new(config).expect("Failed to create payment processor"));
@@ -325,10 +323,7 @@ async fn test_instant_proof_functionality() {
             // This is the key: instant proof is available, but settlement hasn't happened yet
             // Merchant can verify payment commitment immediately via CTV proof
         }
-        _ => panic!(
-            "Expected ProofCreated state for instant proof, got {:?}",
-            state
-        ),
+        _ => panic!("Expected ProofCreated state for instant proof, got {state:?}"),
     }
 
     // Verify that settlement hasn't happened yet (this is the point of instant proof)
@@ -346,7 +341,7 @@ async fn test_instant_proof_functionality() {
 #[tokio::test]
 #[cfg(feature = "ctv")]
 async fn test_create_covenant_proof_for_existing_payment() {
-    let temp_dir = TempDir::new().unwrap();
+    let _temp_dir = TempDir::new().unwrap();
     let config = PaymentConfig::default();
     let processor =
         Arc::new(PaymentProcessor::new(config).expect("Failed to create payment processor"));
@@ -381,31 +376,30 @@ async fn test_create_covenant_proof_for_existing_payment() {
         PaymentState::ProofCreated { request_id, .. } => {
             assert_eq!(request_id, payment_id);
         }
-        _ => panic!("Expected ProofCreated state, got {:?}", state),
+        _ => panic!("Expected ProofCreated state, got {state:?}"),
     }
 }
 
 /// Test settlement monitor initialization
 #[tokio::test]
 async fn test_settlement_monitor_initialization() {
-    let temp_dir = TempDir::new().unwrap();
+    let _temp_dir = TempDir::new().unwrap();
     let config = PaymentConfig::default();
     let processor =
         Arc::new(PaymentProcessor::new(config).expect("Failed to create payment processor"));
     let state_machine = Arc::new(PaymentStateMachine::new(processor));
 
     // Create settlement monitor
-    let monitor = SettlementMonitor::new(state_machine);
+    let _monitor = SettlementMonitor::new(state_machine);
 
     // Monitor should be created successfully
     // (No assertions needed - just verify it compiles and initializes)
-    assert!(true, "Settlement monitor created successfully");
 }
 
 /// Test payment state machine with multiple concurrent payments
 #[tokio::test]
 async fn test_concurrent_payment_requests() {
-    let temp_dir = TempDir::new().unwrap();
+    let _temp_dir = TempDir::new().unwrap();
     let config = PaymentConfig::default();
     let processor =
         Arc::new(PaymentProcessor::new(config).expect("Failed to create payment processor"));

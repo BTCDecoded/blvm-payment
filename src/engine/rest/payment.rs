@@ -8,9 +8,7 @@
 
 use crate::engine::rpc::DEFAULT_SAFE_DEPTH;
 use crate::engine::state_machine::{PaymentState, PaymentStateMachine};
-use blvm_node::rpc::rest::types::{
-    ApiError, ApiResponse, ErrorDetails, ResponseMeta, rest_error_failed, rest_error_invalid,
-};
+use blvm_node::rpc::rest::types::{ApiError, ApiResponse, rest_error_failed, rest_error_invalid};
 use blvm_node::utils::new_request_id;
 use blvm_protocol::payment::PaymentOutput;
 use bytes::Bytes;
@@ -18,7 +16,6 @@ use http_body_util::Full;
 use hyper::{Method, Response, StatusCode};
 use serde_json::{Value, json};
 use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
 use tracing::{debug, error};
 
 /// Handle payment REST API requests
@@ -173,7 +170,7 @@ async fn create_payment_request(
             {
                 if let Some(proof) = covenant_proof {
                     response_data["covenant_proof"] =
-                        serde_json::to_value(&proof).unwrap_or_else(|_| json!(null));
+                        serde_json::to_value(&proof).unwrap_or(serde_json::Value::Null);
                 }
             }
 
@@ -212,7 +209,7 @@ async fn create_covenant_proof(
     match state_machine.create_covenant_proof(payment_id).await {
         Ok(covenant_proof) => {
             let response_data =
-                serde_json::to_value(&covenant_proof).unwrap_or_else(|_| json!(null));
+                serde_json::to_value(&covenant_proof).unwrap_or(serde_json::Value::Null);
             success_response(response_data, request_id)
         }
         Err(e) => {
@@ -322,7 +319,7 @@ fn payment_state_to_json(state: &PaymentState) -> Value {
                 "state": "proof_created",
                 "request_id": request_id,
                 "covenant_proof": serde_json::to_value(covenant_proof)
-                    .unwrap_or_else(|_| json!(null)),
+                    .unwrap_or(serde_json::Value::Null),
             })
         }
         #[cfg(feature = "ctv")]
@@ -335,7 +332,7 @@ fn payment_state_to_json(state: &PaymentState) -> Value {
                 "state": "proof_broadcast",
                 "request_id": request_id,
                 "covenant_proof": serde_json::to_value(covenant_proof)
-                    .unwrap_or_else(|_| json!(null)),
+                    .unwrap_or(serde_json::Value::Null),
                 "broadcast_peers": broadcast_peers.len(),
             })
         }

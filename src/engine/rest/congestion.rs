@@ -10,7 +10,6 @@
 use crate::engine::state_machine::PaymentStateMachine;
 use blvm_node::rpc::rest::types::{error_response, rest_error_failed, success_response};
 use blvm_node::utils::current_timestamp;
-use blvm_protocol::payment::PaymentOutput;
 use bytes::Bytes;
 use http_body_util::Full;
 use hyper::{Method, Response, StatusCode};
@@ -44,7 +43,7 @@ pub async fn handle_congestion_request(
     match (method, path) {
         (&Method::POST, "/api/v1/batches") => create_batch(state_machine, body, request_id).await,
         (method, path)
-            if method == &Method::POST
+            if method == Method::POST
                 && path.starts_with("/api/v1/batches/")
                 && path.ends_with("/transactions") =>
         {
@@ -56,7 +55,7 @@ pub async fn handle_congestion_request(
             get_batch_state(state_machine, &batch_id, request_id).await
         }
         (method, path)
-            if method == &Method::POST
+            if method == Method::POST
                 && path.starts_with("/api/v1/batches/")
                 && path.ends_with("/broadcast") =>
         {
@@ -69,7 +68,7 @@ pub async fn handle_congestion_request(
         _ => error_response(
             StatusCode::NOT_FOUND,
             "NOT_FOUND",
-            &format!("Congestion endpoint not found: {} {}", method, path),
+            &format!("Congestion endpoint not found: {method} {path}"),
             request_id,
         ),
     }
@@ -259,14 +258,14 @@ async fn get_batch_state(
                     let response_data = json!({
                         "batch_id": batch.batch_id,
                         "batch_state": serde_json::to_value(batch)
-                            .unwrap_or_else(|_| json!(null)),
+                            .unwrap_or(serde_json::Value::Null),
                     });
                     success_response(response_data, request_id)
                 }
                 None => error_response(
                     StatusCode::NOT_FOUND,
                     "NOT_FOUND",
-                    &format!("Batch {} not found", batch_id),
+                    &format!("Batch {batch_id} not found"),
                     request_id,
                 ),
             }
@@ -294,7 +293,7 @@ async fn broadcast_batch(
                     let response_data = json!({
                         "batch_id": batch_id,
                         "covenant_proof": serde_json::to_value(&covenant_proof)
-                            .unwrap_or_else(|_| json!(null)),
+                            .unwrap_or(serde_json::Value::Null),
                         "ready_to_broadcast": true,
                     });
                     success_response(response_data, request_id)

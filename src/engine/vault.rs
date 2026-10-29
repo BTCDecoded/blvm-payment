@@ -129,18 +129,17 @@ impl VaultEngine {
             .ok_or_else(|| PaymentError::ProcessingError(STORAGE_NOT_AVAILABLE_MSG.to_string()))?;
 
         let vaults_tree = storage.open_tree("vaults").map_err(|e| {
-            PaymentError::ProcessingError(format!("Failed to open vaults tree: {}", e))
+            PaymentError::ProcessingError(format!("Failed to open vaults tree: {e}"))
         })?;
 
         let mut vaults = self.vaults.lock().unwrap();
         for result in vaults_tree.iter() {
-            let (key, value) = result.map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to read vault: {}", e))
-            })?;
+            let (key, value) = result
+                .map_err(|e| PaymentError::ProcessingError(format!("Failed to read vault: {e}")))?;
             let vault_id = String::from_utf8(key)
-                .map_err(|e| PaymentError::ProcessingError(format!("Invalid vault ID: {}", e)))?;
+                .map_err(|e| PaymentError::ProcessingError(format!("Invalid vault ID: {e}")))?;
             let vault_state: VaultState = bincode::deserialize(&value).map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to deserialize vault: {}", e))
+                PaymentError::ProcessingError(format!("Failed to deserialize vault: {e}"))
             })?;
             vaults.insert(vault_id, vault_state);
         }
@@ -156,17 +155,17 @@ impl VaultEngine {
         // Persist to storage if available
         if let Some(storage) = &self.storage {
             let vaults_tree = storage.open_tree("vaults").map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to open vaults tree: {}", e))
+                PaymentError::ProcessingError(format!("Failed to open vaults tree: {e}"))
             })?;
 
             let key = vault_state.vault_id.as_bytes();
             let value = bincode::serialize(vault_state).map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to serialize vault: {}", e))
+                PaymentError::ProcessingError(format!("Failed to serialize vault: {e}"))
             })?;
 
-            vaults_tree.insert(key, &value).map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to save vault: {}", e))
-            })?;
+            vaults_tree
+                .insert(key, &value)
+                .map_err(|e| PaymentError::ProcessingError(format!("Failed to save vault: {e}")))?;
         }
 
         Ok(())
@@ -183,14 +182,15 @@ impl VaultEngine {
         // If not in cache, try loading from storage
         if let Some(storage) = &self.storage {
             let vaults_tree = storage.open_tree("vaults").map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to open vaults tree: {}", e))
+                PaymentError::ProcessingError(format!("Failed to open vaults tree: {e}"))
             })?;
 
-            if let Some(value) = vaults_tree.get(vault_id.as_bytes()).map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to read vault: {}", e))
-            })? {
+            if let Some(value) = vaults_tree
+                .get(vault_id.as_bytes())
+                .map_err(|e| PaymentError::ProcessingError(format!("Failed to read vault: {e}")))?
+            {
                 let vault_state: VaultState = bincode::deserialize(&value).map_err(|e| {
-                    PaymentError::ProcessingError(format!("Failed to deserialize vault: {}", e))
+                    PaymentError::ProcessingError(format!("Failed to deserialize vault: {e}"))
                 })?;
                 // Update cache
                 drop(vaults);
@@ -400,8 +400,7 @@ impl VaultEngine {
             if let Some(available_at) = vault_state.withdrawal_available_at {
                 if current_block_height < available_at {
                     return Err(PaymentError::ProcessingError(format!(
-                        "Withdrawal not yet available. Available at block {}, current: {}",
-                        available_at, current_block_height
+                        "Withdrawal not yet available. Available at block {available_at}, current: {current_block_height}"
                     )));
                 }
             }

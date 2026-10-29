@@ -5,7 +5,7 @@
 
 use blvm_node::{Hash, Transaction};
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 
 /// Max cached txs (LRU eviction by count; simple implementation)
 const MAX_CACHED: usize = 10_000;

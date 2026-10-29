@@ -155,7 +155,7 @@ impl CovenantEngine {
             // Transaction type from blvm-node is the same as blvm-consensus (re-exported)
             // Calculate template hash for the transaction
             let tx_template_hash = calculate_template_hash(tx, input_index).map_err(|e| {
-                PaymentError::ProcessingError(format!("CTV hash calculation failed: {}", e))
+                PaymentError::ProcessingError(format!("CTV hash calculation failed: {e}"))
             })?;
 
             // Verify template hash matches
@@ -215,9 +215,8 @@ impl CovenantEngine {
         // (CTV hash calculation requires a Transaction struct)
         let tx = self.template_to_transaction(template)?;
 
-        calculate_template_hash(&tx, input_index).map_err(|e| {
-            PaymentError::ProcessingError(format!("CTV hash calculation failed: {}", e))
-        })
+        calculate_template_hash(&tx, input_index)
+            .map_err(|e| PaymentError::ProcessingError(format!("CTV hash calculation failed: {e}")))
     }
 
     /// Convert transaction template to Transaction (for CTV hash calculation)

@@ -1,4 +1,5 @@
 //! Shared fixtures for payment integration tests.
+#![allow(dead_code)]
 
 use blvm_node::storage::database::{Database, DatabaseBackend, create_database};
 use blvm_node::{OutPoint, Transaction, TransactionInput, TransactionOutput};

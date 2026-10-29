@@ -21,7 +21,7 @@ fn settlement_fixture() -> (TempDir, Arc<PaymentStateMachine>, Arc<Storage>) {
 
 #[tokio::test]
 async fn test_settlement_monitor_start_and_stop() {
-    let (_dir, state_machine, storage) = settlement_fixture();
+    let (_dir, state_machine, _storage) = settlement_fixture();
     let monitor = SettlementMonitor::new(state_machine);
 
     let outputs = vec![PaymentOutput {
@@ -39,7 +39,7 @@ async fn test_settlement_monitor_start_and_stop() {
 
 #[tokio::test]
 async fn test_settlement_monitor_with_expected_tx_hash() {
-    let (_dir, state_machine, storage) = settlement_fixture();
+    let (_dir, state_machine, _storage) = settlement_fixture();
     let monitor = SettlementMonitor::new(state_machine);
 
     let outputs = vec![PaymentOutput {

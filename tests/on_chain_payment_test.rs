@@ -217,7 +217,7 @@ async fn verify_on_chain_payment_by_tx_underpaid() {
 
 #[tokio::test]
 async fn verify_on_chain_payment_by_tx_local_pr_outputs() {
-    let temp_dir = TempDir::new().unwrap();
+    let _temp_dir = TempDir::new().unwrap();
     let processor =
         Arc::new(PaymentProcessor::new(PaymentConfig::default()).expect("payment processor"));
     let state_machine = Arc::new(PaymentStateMachine::new(processor.clone()));

@@ -13,8 +13,6 @@ use crate::engine::state_machine::{PaymentState, PaymentStateMachine};
 #[cfg(feature = "ctv")]
 use crate::engine::tx_cache::PaymentTxCache;
 #[cfg(feature = "ctv")]
-use std::sync::Arc;
-#[cfg(feature = "ctv")]
 use tracing::{debug, info, warn};
 
 /// Handles a disconnected block for payment settlement state.

@@ -17,7 +17,7 @@ use blvm_node::{Hash, Transaction};
 use blvm_protocol::payment::PaymentOutput;
 use serde_json::{Value, json};
 use std::sync::Arc;
-use tracing::{debug, error};
+use tracing::debug;
 
 /// Default number of confirmations before considering a payment "safe for release" (RPC and REST).
 pub const DEFAULT_SAFE_DEPTH: u32 = 6;
@@ -157,8 +157,7 @@ impl PaymentRpc {
             if let Some(proof) = covenant_proof {
                 response["covenant_proof"] = serde_json::to_value(&proof).map_err(|e| {
                     PaymentError::ProcessingError(format!(
-                        "Failed to serialize covenant proof: {}",
-                        e
+                        "Failed to serialize covenant proof: {e}"
                     ))
                 })?;
             }
@@ -187,9 +186,9 @@ impl PaymentRpc {
             .create_covenant_proof(payment_request_id)
             .await?;
 
-        Ok(serde_json::to_value(&covenant_proof).map_err(|e| {
-            PaymentError::ProcessingError(format!("Failed to serialize covenant proof: {}", e))
-        })?)
+        serde_json::to_value(&covenant_proof).map_err(|e| {
+            PaymentError::ProcessingError(format!("Failed to serialize covenant proof: {e}"))
+        })
     }
 
     /// Get payment state
@@ -227,7 +226,7 @@ impl PaymentRpc {
                     "request_id": request_id,
                     "covenant_proof": serde_json::to_value(covenant_proof)
                         .map_err(|e| PaymentError::ProcessingError(
-                            format!("Failed to serialize covenant proof: {}", e)
+                            format!("Failed to serialize covenant proof: {e}")
                         ))?,
                 })
             }
@@ -242,7 +241,7 @@ impl PaymentRpc {
                     "request_id": request_id,
                     "covenant_proof": serde_json::to_value(covenant_proof)
                         .map_err(|e| PaymentError::ProcessingError(
-                            format!("Failed to serialize covenant proof: {}", e)
+                            format!("Failed to serialize covenant proof: {e}")
                         ))?,
                     "broadcast_peers": broadcast_peers.len(),
                 })
@@ -520,14 +519,15 @@ impl PaymentRpc {
             }));
         }
 
-        let state = match chain_state {
-            TxChainState::InMempool => "in_mempool",
-            TxChainState::Confirmed { .. } => "confirmed",
+        let (state, confirmations) = match chain_state {
+            TxChainState::InMempool => ("in_mempool", 0),
+            TxChainState::Confirmed { confirmations } => ("confirmed", confirmations),
         };
 
         Ok(json!({
             "verified": true,
             "state": state,
+            "confirmations": confirmations,
             "amount_sats": amount_sats,
             "tx_hash": tx_hash_hex,
             "reason": null,
@@ -735,7 +735,7 @@ impl PaymentRpc {
             PaymentError::ProcessingError("withdrawal_script required".to_string())
         })?;
         let withdrawal_script = hex::decode(withdrawal_script_hex).map_err(|e| {
-            PaymentError::ProcessingError(format!("Invalid withdrawal_script: {}", e))
+            PaymentError::ProcessingError(format!("Invalid withdrawal_script: {e}"))
         })?;
 
         let config = if params.get("config").is_some() && !params["config"].is_null() {
@@ -751,7 +751,7 @@ impl PaymentRpc {
         Ok(json!({
             "vault_id": vault_state.vault_id,
             "vault_state": serde_json::to_value(&vault_state)
-                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {}", e)))?,
+                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {e}")))?,
         }))
     }
 
@@ -786,7 +786,7 @@ impl PaymentRpc {
             .as_str()
             .ok_or_else(|| PaymentError::ProcessingError("unvault_script required".to_string()))?;
         let unvault_script = hex::decode(unvault_script_hex)
-            .map_err(|e| PaymentError::ProcessingError(format!("Invalid unvault_script: {}", e)))?;
+            .map_err(|e| PaymentError::ProcessingError(format!("Invalid unvault_script: {e}")))?;
 
         let vault_state = vault_engine
             .get_vault(&vault_id)?
@@ -797,7 +797,7 @@ impl PaymentRpc {
         Ok(json!({
             "vault_id": updated_vault_state.vault_id,
             "vault_state": serde_json::to_value(&updated_vault_state)
-                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {}", e)))?,
+                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {e}")))?,
         }))
     }
 
@@ -837,7 +837,7 @@ impl PaymentRpc {
             PaymentError::ProcessingError("withdrawal_script required".to_string())
         })?;
         let withdrawal_script = hex::decode(withdrawal_script_hex).map_err(|e| {
-            PaymentError::ProcessingError(format!("Invalid withdrawal_script: {}", e))
+            PaymentError::ProcessingError(format!("Invalid withdrawal_script: {e}"))
         })?;
 
         let current_block_height = if let Some(chain) = &self.chain {
@@ -854,7 +854,7 @@ impl PaymentRpc {
         Ok(json!({
             "vault_id": updated_vault_state.vault_id,
             "vault_state": serde_json::to_value(&updated_vault_state)
-                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {}", e)))?,
+                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {e}")))?,
         }))
     }
 
@@ -891,7 +891,7 @@ impl PaymentRpc {
         Ok(json!({
             "vault_id": vault_state.vault_id,
             "vault_state": serde_json::to_value(&vault_state)
-                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {}", e)))?,
+                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {e}")))?,
         }))
     }
 
@@ -953,7 +953,7 @@ impl PaymentRpc {
                 PaymentError::ProcessingError("script_pubkey required".to_string())
             })?;
             let script = hex::decode(script_hex).map_err(|e| {
-                PaymentError::ProcessingError(format!("Invalid script_pubkey: {}", e))
+                PaymentError::ProcessingError(format!("Invalid script_pubkey: {e}"))
             })?;
 
             initial_participants.push((participant_id, contribution, script));
@@ -971,7 +971,7 @@ impl PaymentRpc {
         Ok(json!({
             "pool_id": pool_state.pool_id,
             "pool_state": serde_json::to_value(&pool_state)
-                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {}", e)))?,
+                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {e}")))?,
         }))
     }
 
@@ -1017,7 +1017,7 @@ impl PaymentRpc {
             .as_str()
             .ok_or_else(|| PaymentError::ProcessingError("script_pubkey required".to_string()))?;
         let script_pubkey = hex::decode(script_hex)
-            .map_err(|e| PaymentError::ProcessingError(format!("Invalid script_pubkey: {}", e)))?;
+            .map_err(|e| PaymentError::ProcessingError(format!("Invalid script_pubkey: {e}")))?;
 
         let pool_state = pool_engine
             .get_pool(&pool_id)?
@@ -1029,7 +1029,7 @@ impl PaymentRpc {
         Ok(json!({
             "pool_id": updated_pool_state.pool_id,
             "pool_state": serde_json::to_value(&updated_pool_state)
-                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {}", e)))?,
+                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {e}")))?,
         }))
     }
 
@@ -1098,9 +1098,9 @@ impl PaymentRpc {
         Ok(json!({
             "pool_id": updated_pool_state.pool_id,
             "pool_state": serde_json::to_value(&updated_pool_state)
-                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {}", e)))?,
+                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {e}")))?,
             "covenant_proof": serde_json::to_value(&covenant_proof)
-                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {}", e)))?,
+                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {e}")))?,
         }))
     }
 
@@ -1137,7 +1137,7 @@ impl PaymentRpc {
         Ok(json!({
             "pool_id": pool_state.pool_id,
             "pool_state": serde_json::to_value(&pool_state)
-                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {}", e)))?,
+                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {e}")))?,
         }))
     }
 
@@ -1227,7 +1227,7 @@ impl PaymentRpc {
                 PaymentError::ProcessingError("script_pubkey required".to_string())
             })?;
             let script = hex::decode(script_hex).map_err(|e| {
-                PaymentError::ProcessingError(format!("Invalid script_pubkey: {}", e))
+                PaymentError::ProcessingError(format!("Invalid script_pubkey: {e}"))
             })?;
 
             outputs.push(PaymentOutput { script, amount });
@@ -1330,7 +1330,7 @@ impl PaymentRpc {
         Ok(json!({
             "batch_id": batch_id,
             "covenant_proof": serde_json::to_value(&covenant_proof)
-                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {}", e)))?,
+                .map_err(|e| PaymentError::ProcessingError(format!("Serialization error: {e}")))?,
             "ready_to_broadcast": true,
         }))
     }

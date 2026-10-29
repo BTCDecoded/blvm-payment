@@ -127,18 +127,17 @@ impl PoolEngine {
             .ok_or_else(|| PaymentError::ProcessingError(STORAGE_NOT_AVAILABLE_MSG.to_string()))?;
 
         let pools_tree = storage.open_tree("pools").map_err(|e| {
-            PaymentError::ProcessingError(format!("Failed to open pools tree: {}", e))
+            PaymentError::ProcessingError(format!("Failed to open pools tree: {e}"))
         })?;
 
         let mut pools = self.pools.lock().unwrap();
         for result in pools_tree.iter() {
-            let (key, value) = result.map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to read pool: {}", e))
-            })?;
+            let (key, value) = result
+                .map_err(|e| PaymentError::ProcessingError(format!("Failed to read pool: {e}")))?;
             let pool_id = String::from_utf8(key)
-                .map_err(|e| PaymentError::ProcessingError(format!("Invalid pool ID: {}", e)))?;
+                .map_err(|e| PaymentError::ProcessingError(format!("Invalid pool ID: {e}")))?;
             let pool_state: PoolState = bincode::deserialize(&value).map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to deserialize pool: {}", e))
+                PaymentError::ProcessingError(format!("Failed to deserialize pool: {e}"))
             })?;
             pools.insert(pool_id, pool_state);
         }
@@ -154,17 +153,17 @@ impl PoolEngine {
         // Persist to storage if available
         if let Some(storage) = &self.storage {
             let pools_tree = storage.open_tree("pools").map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to open pools tree: {}", e))
+                PaymentError::ProcessingError(format!("Failed to open pools tree: {e}"))
             })?;
 
             let key = pool_state.pool_id.as_bytes();
             let value = bincode::serialize(pool_state).map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to serialize pool: {}", e))
+                PaymentError::ProcessingError(format!("Failed to serialize pool: {e}"))
             })?;
 
-            pools_tree.insert(key, &value).map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to save pool: {}", e))
-            })?;
+            pools_tree
+                .insert(key, &value)
+                .map_err(|e| PaymentError::ProcessingError(format!("Failed to save pool: {e}")))?;
         }
 
         Ok(())
@@ -181,15 +180,15 @@ impl PoolEngine {
         // If not in cache, try loading from storage
         if let Some(storage) = &self.storage {
             let pools_tree = storage.open_tree("pools").map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to open pools tree: {}", e))
+                PaymentError::ProcessingError(format!("Failed to open pools tree: {e}"))
             })?;
 
             if let Some(value) = pools_tree
                 .get(pool_id.as_bytes())
-                .map_err(|e| PaymentError::ProcessingError(format!("Failed to read pool: {}", e)))?
+                .map_err(|e| PaymentError::ProcessingError(format!("Failed to read pool: {e}")))?
             {
                 let pool_state: PoolState = bincode::deserialize(&value).map_err(|e| {
-                    PaymentError::ProcessingError(format!("Failed to deserialize pool: {}", e))
+                    PaymentError::ProcessingError(format!("Failed to deserialize pool: {e}"))
                 })?;
                 // Update cache
                 drop(pools);
@@ -321,8 +320,7 @@ impl PoolEngine {
                 .any(|p| p.participant_id == participant_id)
             {
                 return Err(PaymentError::ProcessingError(format!(
-                    "Participant {} already in pool",
-                    participant_id
+                    "Participant {participant_id} already in pool"
                 )));
             }
 
@@ -402,8 +400,7 @@ impl PoolEngine {
                 .find(|p| p.participant_id == participant_id)
                 .ok_or_else(|| {
                     PaymentError::ProcessingError(format!(
-                        "Participant {} not found in pool",
-                        participant_id
+                        "Participant {participant_id} not found in pool"
                     ))
                 })?;
 
@@ -474,13 +471,12 @@ impl PoolEngine {
                     .find(|p| p.participant_id == *participant_id)
                     .ok_or_else(|| {
                         PaymentError::ProcessingError(format!(
-                            "Participant {} not found in pool",
-                            participant_id
+                            "Participant {participant_id} not found in pool"
                         ))
                     })?;
 
                 // Apply pool fee. The fee stays in the participant balance.
-                let fee_amount = (*amount as u64 * pool_state.config.pool_fee_percent as u64) / 100;
+                let fee_amount = (*amount * u64::from(pool_state.config.pool_fee_percent)) / 100;
                 let net_amount = *amount - fee_amount;
 
                 distribution_outputs.push(PaymentOutput {
@@ -566,8 +562,7 @@ impl PoolEngine {
                 .find(|p| p.participant_id == participant_id)
                 .ok_or_else(|| {
                     PaymentError::ProcessingError(format!(
-                        "Participant {} not found in pool",
-                        participant_id
+                        "Participant {participant_id} not found in pool"
                     ))
                 })?;
 
@@ -669,11 +664,8 @@ impl PoolEngine {
             })
             .collect();
 
-        self.covenant_engine.create_payment_covenant(
-            &format!("{}_template", pool_id),
-            &outputs,
-            None,
-        )
+        self.covenant_engine
+            .create_payment_covenant(&format!("{pool_id}_template"), &outputs, None)
     }
 }
 

@@ -720,16 +720,20 @@ mod merchant_key_tests {
 
     #[test]
     fn merchant_signing_key_reads_a_32_byte_hex_key() {
-        let mut config = PaymentConfig::default();
-        config.merchant_key = Some("11".repeat(32));
+        let config = PaymentConfig {
+            merchant_key: Some("11".repeat(32)),
+            ..PaymentConfig::default()
+        };
         let processor = PaymentProcessor::new(config).expect("processor");
         assert_eq!(processor.merchant_signing_key(), Some([0x11; 32]));
     }
 
     #[test]
     fn merchant_signing_key_rejects_a_short_key() {
-        let mut config = PaymentConfig::default();
-        config.merchant_key = Some("aa".into());
+        let config = PaymentConfig {
+            merchant_key: Some("aa".into()),
+            ..PaymentConfig::default()
+        };
         let processor = PaymentProcessor::new(config).expect("processor");
         assert!(processor.merchant_signing_key().is_none());
     }
@@ -774,8 +778,10 @@ mod bip47_address {
         let chain = [0x11u8; 32];
         let pubkey = scalar_point(payment_secret);
         let code = payment_code(&pubkey, &chain);
-        let mut config = PaymentConfig::default();
-        config.bip47_scan_key = Some(hex::encode(scan_secret));
+        let config = PaymentConfig {
+            bip47_scan_key: Some(hex::encode(scan_secret)),
+            ..PaymentConfig::default()
+        };
         let processor = PaymentProcessor::new(config).unwrap();
         let address = processor.derive_bip47_address(&code, 0).unwrap();
         let again = processor.derive_bip47_address(&code, 0).unwrap();
@@ -815,8 +821,10 @@ mod bip47_address {
         assert_eq!(&decoded[1..], expect.as_slice());
 
         assert!(processor.derive_bip47_address("not-a-code", 0).is_err());
-        let mut bare = PaymentConfig::default();
-        bare.bip47_scan_key = None;
+        let bare = PaymentConfig {
+            bip47_scan_key: None,
+            ..PaymentConfig::default()
+        };
         let closed = PaymentProcessor::new(bare).unwrap();
         assert!(closed.derive_bip47_address(&code, 0).is_err());
     }

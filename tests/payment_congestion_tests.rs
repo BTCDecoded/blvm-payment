@@ -8,7 +8,6 @@ use blvm_payment::engine::congestion::{
     BatchConfig, CongestionManager, PendingTransaction, TransactionPriority,
 };
 use blvm_payment::engine::covenant::CovenantEngine;
-use blvm_payment::engine::processor::PaymentError;
 use blvm_protocol::payment::PaymentOutput;
 use std::sync::Arc;
 
@@ -38,7 +37,6 @@ fn create_test_pending_transaction(tx_id: &str, amount: u64) -> PendingTransacti
 /// Test batch persistence reload on manager init
 #[test]
 fn test_load_batches_from_storage_on_init() {
-    use blvm_node::storage::Storage;
     use std::sync::Arc;
     use tempfile::TempDir;
 
@@ -131,7 +129,7 @@ fn test_add_transaction_batch_not_found() {
 /// Test add transaction fails when batch is full
 #[test]
 fn test_add_transaction_batch_full() {
-    let mut manager = create_test_congestion_manager();
+    let _manager = create_test_congestion_manager();
     let batch_id = "test_batch_4";
     let config = BatchConfig {
         max_batch_size: 2,

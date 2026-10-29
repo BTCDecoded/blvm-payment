@@ -132,7 +132,7 @@ impl CongestionManager {
             .ok_or_else(|| PaymentError::ProcessingError(STORAGE_NOT_AVAILABLE_MSG.to_string()))?;
 
         let batches_tree = storage.open_tree("batches").map_err(|e| {
-            PaymentError::ProcessingError(format!("Failed to open batches tree: {}", e))
+            PaymentError::ProcessingError(format!("Failed to open batches tree: {e}"))
         })?;
 
         let mut loaded = 0usize;
@@ -157,17 +157,17 @@ impl CongestionManager {
     fn save_batch(&self, batch: &TransactionBatch) -> Result<(), PaymentError> {
         if let Some(storage) = &self.storage {
             let batches_tree = storage.open_tree("batches").map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to open batches tree: {}", e))
+                PaymentError::ProcessingError(format!("Failed to open batches tree: {e}"))
             })?;
 
             let key = batch.batch_id.as_bytes();
             let value = bincode::serialize(batch).map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to serialize batch: {}", e))
+                PaymentError::ProcessingError(format!("Failed to serialize batch: {e}"))
             })?;
 
-            batches_tree.insert(key, &value).map_err(|e| {
-                PaymentError::ProcessingError(format!("Failed to save batch: {}", e))
-            })?;
+            batches_tree
+                .insert(key, &value)
+                .map_err(|e| PaymentError::ProcessingError(format!("Failed to save batch: {e}")))?;
         }
         Ok(())
     }
@@ -223,7 +223,7 @@ impl CongestionManager {
     ) -> Result<(), PaymentError> {
         let (batch_clone, tx_count) = {
             let batch = self.batches.get_mut(batch_id).ok_or_else(|| {
-                PaymentError::ProcessingError(format!("Batch {} not found", batch_id))
+                PaymentError::ProcessingError(format!("Batch {batch_id} not found"))
             })?;
 
             if batch.transactions.len() >= self.config.max_batch_size {
@@ -320,9 +320,10 @@ impl CongestionManager {
     ///
     /// `true` if batch should be broadcast, `false` otherwise
     pub fn should_broadcast(&self, batch_id: &str) -> Result<bool, PaymentError> {
-        let batch = self.batches.get(batch_id).ok_or_else(|| {
-            PaymentError::ProcessingError(format!("Batch {} not found", batch_id))
-        })?;
+        let batch = self
+            .batches
+            .get(batch_id)
+            .ok_or_else(|| PaymentError::ProcessingError(format!("Batch {batch_id} not found")))?;
 
         // Check if batch is empty
         if batch.transactions.is_empty() {
@@ -392,7 +393,7 @@ impl CongestionManager {
         {
             let (needs_covenant, tx_count, target_fee) = {
                 let batch = self.batches.get_mut(batch_id).ok_or_else(|| {
-                    PaymentError::ProcessingError(format!("Batch {} not found", batch_id))
+                    PaymentError::ProcessingError(format!("Batch {batch_id} not found"))
                 })?;
 
                 if batch.transactions.is_empty() {
@@ -414,7 +415,7 @@ impl CongestionManager {
             // Get covenant and update batch state
             let covenant = {
                 let batch = self.batches.get_mut(batch_id).ok_or_else(|| {
-                    PaymentError::ProcessingError(format!("Batch {} not found", batch_id))
+                    PaymentError::ProcessingError(format!("Batch {batch_id} not found"))
                 })?;
 
                 batch.covenant_template.as_ref().ok_or_else(|| {
@@ -434,7 +435,7 @@ impl CongestionManager {
             self.enqueue_batch_transaction(&covenant)?;
             let stored = {
                 let batch = self.batches.get_mut(batch_id).ok_or_else(|| {
-                    PaymentError::ProcessingError(format!("Batch {} not found", batch_id))
+                    PaymentError::ProcessingError(format!("Batch {batch_id} not found"))
                 })?;
                 batch.ready_to_broadcast = true;
                 batch.broadcast_at = Some(current_timestamp());
@@ -501,9 +502,10 @@ impl CongestionManager {
     pub fn adjust_fee_rate(&mut self, batch_id: &str) -> Result<u64, PaymentError> {
         let metrics = self.check_congestion()?;
 
-        let batch = self.batches.get_mut(batch_id).ok_or_else(|| {
-            PaymentError::ProcessingError(format!("Batch {} not found", batch_id))
-        })?;
+        let batch = self
+            .batches
+            .get_mut(batch_id)
+            .ok_or_else(|| PaymentError::ProcessingError(format!("Batch {batch_id} not found")))?;
 
         // Adjust fee rate based on network conditions
         let new_fee_rate = if metrics.avg_fee_rate > batch.target_fee_rate {
@@ -536,9 +538,10 @@ impl CongestionManager {
 
     /// Update batch covenant template
     fn update_batch_covenant(&mut self, batch_id: &str) -> Result<(), PaymentError> {
-        let batch = self.batches.get_mut(batch_id).ok_or_else(|| {
-            PaymentError::ProcessingError(format!("Batch {} not found", batch_id))
-        })?;
+        let batch = self
+            .batches
+            .get_mut(batch_id)
+            .ok_or_else(|| PaymentError::ProcessingError(format!("Batch {batch_id} not found")))?;
 
         // Combine all transaction outputs
         let mut all_outputs = Vec::new();
@@ -548,7 +551,7 @@ impl CongestionManager {
 
         // Create covenant template
         let covenant = self.covenant_engine.create_payment_covenant(
-            &format!("{}_batch", batch_id),
+            &format!("{batch_id}_batch"),
             &all_outputs,
             None,
         )?;

@@ -355,8 +355,7 @@ impl PaymentStateMachine {
                 }
                 _ => {
                     return Err(PaymentError::ProcessingError(format!(
-                        "Cannot broadcast proof from state: {:?}",
-                        state
+                        "Cannot broadcast proof from state: {state:?}"
                     )));
                 }
             };

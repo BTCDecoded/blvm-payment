@@ -10,7 +10,6 @@
 mod common;
 
 use blvm_node::config::PaymentConfig;
-use blvm_node::storage::Storage;
 use blvm_node::utils::new_request_id;
 use blvm_payment::engine::processor::PaymentProcessor;
 use blvm_payment::engine::rest::congestion::handle_congestion_request;
@@ -26,6 +25,7 @@ use std::sync::Arc;
 use tempfile::TempDir;
 
 /// Helper to create test payment state machine
+#[allow(dead_code)]
 fn create_test_state_machine() -> Arc<PaymentStateMachine> {
     let config = PaymentConfig::default();
     let processor =

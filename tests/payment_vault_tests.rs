@@ -6,10 +6,8 @@
 mod common;
 use blvm_payment::engine::covenant::CovenantEngine;
 use blvm_payment::engine::processor::PaymentError;
-use blvm_payment::engine::vault::{VaultConfig, VaultEngine, VaultLifecycle, VaultState};
-use blvm_protocol::payment::PaymentOutput;
+use blvm_payment::engine::vault::{VaultConfig, VaultEngine, VaultLifecycle};
 use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Helper to create a test vault engine
 fn create_test_vault_engine() -> VaultEngine {
@@ -191,7 +189,7 @@ fn test_withdraw() {
     // Mark as unvaulted
     let unvault_tx_hash = [0x02; 32];
     let unvault_block_height = 1000;
-    let mut unvaulted_state = engine
+    let unvaulted_state = engine
         .mark_unvaulted(&unvaulted_state, unvault_tx_hash, unvault_block_height)
         .unwrap();
 
@@ -343,7 +341,6 @@ fn test_mark_unvaulted() {
 #[cfg(feature = "ctv")]
 #[test]
 fn test_vault_state_storage() {
-    use blvm_node::storage::Storage;
     use tempfile::TempDir;
 
     let temp_dir = TempDir::new().unwrap();

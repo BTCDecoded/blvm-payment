@@ -13,9 +13,7 @@ use http_body_util::{BodyExt, Full};
 use hyper::body::Incoming;
 use hyper::http::StatusCode;
 use hyper::{Method, Request, Response};
-use hyper_util::rt::TokioIo;
 use std::sync::Arc;
-use tracing::{debug, error, info, warn};
 
 /// Maximum request body size (1MB) - reuses rpc.max_request_size_bytes default
 const MAX_BODY_SIZE: usize = blvm_node::rpc::server::DEFAULT_MAX_REQUEST_SIZE;
@@ -26,7 +24,7 @@ pub async fn handle_create_payment_request(
     processor: Arc<PaymentProcessor>,
     req: Request<Incoming>,
 ) -> Result<Response<Full<Bytes>>, PaymentError> {
-    use blvm_protocol::payment::{PaymentOutput, PaymentRequest};
+    use blvm_protocol::payment::PaymentOutput;
 
     // Only accept POST
     if req.method() != Method::POST {

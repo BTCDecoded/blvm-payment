@@ -7,9 +7,7 @@
 //! - Get pool state
 
 use crate::engine::state_machine::PaymentStateMachine;
-use blvm_node::rpc::rest::types::{
-    error_response, rest_error_failed, rest_error_invalid, success_response,
-};
+use blvm_node::rpc::rest::types::{error_response, rest_error_failed, success_response};
 use bytes::Bytes;
 use http_body_util::Full;
 use hyper::{Method, Response, StatusCode};
@@ -42,7 +40,7 @@ pub async fn handle_pool_request(
     match (method, path) {
         (&Method::POST, "/api/v1/pools") => create_pool(state_machine, body, request_id).await,
         (method, path)
-            if method == &Method::POST
+            if method == Method::POST
                 && path.starts_with("/api/v1/pools/")
                 && path.ends_with("/join") =>
         {
@@ -50,7 +48,7 @@ pub async fn handle_pool_request(
             join_pool(state_machine, body, &pool_id, request_id).await
         }
         (method, path)
-            if method == &Method::POST
+            if method == Method::POST
                 && path.starts_with("/api/v1/pools/")
                 && path.ends_with("/distribute") =>
         {
@@ -64,7 +62,7 @@ pub async fn handle_pool_request(
         _ => error_response(
             StatusCode::NOT_FOUND,
             "NOT_FOUND",
-            &format!("Pool endpoint not found: {} {}", method, path),
+            &format!("Pool endpoint not found: {method} {path}"),
             request_id,
         ),
     }
@@ -163,7 +161,7 @@ async fn create_pool(
                         return error_response(
                             StatusCode::BAD_REQUEST,
                             "BAD_REQUEST",
-                            &format!("Invalid script_pubkey: {}", e),
+                            &format!("Invalid script_pubkey: {e}"),
                             request_id,
                         );
                     }
@@ -192,7 +190,7 @@ async fn create_pool(
                     let response_data = json!({
                         "pool_id": pool_state.pool_id,
                         "pool_state": serde_json::to_value(&pool_state)
-                            .unwrap_or_else(|_| json!(null)),
+                            .unwrap_or(serde_json::Value::Null),
                     });
                     success_response(response_data, request_id)
                 }
@@ -241,7 +239,7 @@ async fn join_pool(
             return error_response(
                 StatusCode::NOT_FOUND,
                 "NOT_FOUND",
-                &format!("Pool {} not found", pool_id),
+                &format!("Pool {pool_id} not found"),
                 request_id,
             );
         }
@@ -342,7 +340,7 @@ async fn distribute_pool(
             return error_response(
                 StatusCode::NOT_FOUND,
                 "NOT_FOUND",
-                &format!("Pool {} not found", pool_id),
+                &format!("Pool {pool_id} not found"),
                 request_id,
             );
         }
@@ -428,14 +426,14 @@ async fn get_pool_state(
                     let response_data = json!({
                         "pool_id": pool_state.pool_id,
                         "pool_state": serde_json::to_value(&pool_state)
-                            .unwrap_or_else(|_| json!(null)),
+                            .unwrap_or(serde_json::Value::Null),
                     });
                     success_response(response_data, request_id)
                 }
                 Ok(None) => error_response(
                     StatusCode::NOT_FOUND,
                     "NOT_FOUND",
-                    &format!("Pool {} not found", pool_id),
+                    &format!("Pool {pool_id} not found"),
                     request_id,
                 ),
                 Err(e) => error_response(

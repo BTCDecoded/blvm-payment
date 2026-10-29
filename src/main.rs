@@ -26,7 +26,7 @@ async fn main() -> Result<()> {
                 .and_then(|text| toml::from_str::<PaymentConfig>(&text).ok())
                 .unwrap_or_default();
             let module = PaymentModule::open_configured(db, config)
-                .map_err(|error| blvm_node::module::traits::ModuleError::Other(error))?
+                .map_err(blvm_node::module::traits::ModuleError::Other)?
                 .with_node(node_api);
             Ok((module.clone(), module))
         }

@@ -62,7 +62,7 @@ pub async fn handle_vault_request(
         _ => error_response(
             StatusCode::NOT_FOUND,
             "NOT_FOUND",
-            &format!("Vault endpoint not found: {} {}", method, path),
+            &format!("Vault endpoint not found: {method} {path}"),
             request_id,
         ),
     }
@@ -177,7 +177,7 @@ async fn create_vault(
                 let response_data = json!({
                     "vault_id": vault_state.vault_id,
                     "vault_state": serde_json::to_value(&vault_state)
-                        .unwrap_or_else(|_| json!(null)),
+                        .unwrap_or(serde_json::Value::Null),
                 });
                 success_response(response_data, request_id)
             }
@@ -186,7 +186,7 @@ async fn create_vault(
                 error_response(
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "VAULT_CREATION_FAILED",
-                    &format!("Failed to create vault: {}", e),
+                    &format!("Failed to create vault: {e}"),
                     request_id,
                 )
             }
@@ -234,7 +234,7 @@ async fn unvault_vault(
                 return error_response(
                     StatusCode::NOT_FOUND,
                     "NOT_FOUND",
-                    &format!("Vault {} not found", vault_id),
+                    &format!("Vault {vault_id} not found"),
                     request_id,
                 );
             }
@@ -265,7 +265,7 @@ async fn unvault_vault(
             }
         };
 
-        return match vault_engine.unvault(&vault_state, unvault_script) {
+        match vault_engine.unvault(&vault_state, unvault_script) {
             Ok(updated) => success_response(
                 json!({
                     "vault_id": vault_id,
@@ -279,7 +279,7 @@ async fn unvault_vault(
                 &e.to_string(),
                 request_id,
             ),
-        };
+        }
     }
 }
 
@@ -323,7 +323,7 @@ async fn withdraw_from_vault(
                 return error_response(
                     StatusCode::NOT_FOUND,
                     "NOT_FOUND",
-                    &format!("Vault {} not found", vault_id),
+                    &format!("Vault {vault_id} not found"),
                     request_id,
                 );
             }
@@ -373,7 +373,7 @@ async fn withdraw_from_vault(
             }
         };
         let tip = vault_engine.known_tip();
-        return match vault_engine.withdraw(&vault_state, withdrawal_script, tip, Some(amount)) {
+        match vault_engine.withdraw(&vault_state, withdrawal_script, tip, Some(amount)) {
             Ok(updated) => success_response(
                 json!({
                     "vault_id": vault_id,
@@ -389,7 +389,7 @@ async fn withdraw_from_vault(
                 &e.to_string(),
                 request_id,
             ),
-        };
+        }
     }
 }
 
@@ -417,14 +417,14 @@ async fn get_vault_state(
                     let response_data = json!({
                         "vault_id": vault_state.vault_id,
                         "vault_state": serde_json::to_value(&vault_state)
-                            .unwrap_or_else(|_| json!(null)),
+                            .unwrap_or(serde_json::Value::Null),
                     });
                     success_response(response_data, request_id)
                 }
                 Ok(None) => error_response(
                     StatusCode::NOT_FOUND,
                     "NOT_FOUND",
-                    &format!("Vault {} not found", vault_id),
+                    &format!("Vault {vault_id} not found"),
                     request_id,
                 ),
                 Err(e) => error_response(
