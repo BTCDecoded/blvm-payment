@@ -6,9 +6,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 pub fn module_db(dir: &Path) -> Arc<dyn Database> {
-    Arc::from(
-        create_database(dir, DatabaseBackend::Sled, None).expect("module database"),
-    )
+    Arc::from(create_database(dir, DatabaseBackend::Sled, None).expect("module database"))
 }
 
 pub fn test_secp256k1_scalar_one() -> [u8; 32] {

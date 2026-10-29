@@ -3,7 +3,6 @@
 //!
 //! Tests batch creation, transaction batching, fee adjustment, and congestion metrics.
 
-
 mod common;
 use blvm_payment::engine::congestion::{
     BatchConfig, CongestionManager, PendingTransaction, TransactionPriority,
@@ -16,11 +15,7 @@ use std::sync::Arc;
 /// Helper to create a test congestion manager
 fn create_test_congestion_manager() -> CongestionManager {
     let covenant_engine = Arc::new(CovenantEngine::new());
-    CongestionManager::new(
-        covenant_engine,
-        None,
-        BatchConfig::default(),
-    )
+    CongestionManager::new(covenant_engine, None, BatchConfig::default())
 }
 
 /// Helper to create test pending transaction
@@ -64,8 +59,7 @@ fn test_load_batches_from_storage_on_init() {
             .expect("add tx persists batch");
     }
 
-    let reloaded =
-        CongestionManager::new(covenant_engine, Some(storage), BatchConfig::default());
+    let reloaded = CongestionManager::new(covenant_engine, Some(storage), BatchConfig::default());
     let batch = reloaded.get_batch(batch_id).expect("batch restored");
     assert_eq!(batch.target_fee_rate, 5);
     assert_eq!(batch.transactions.len(), 1);

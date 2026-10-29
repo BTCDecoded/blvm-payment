@@ -7,8 +7,8 @@
 use crate::engine::covenant::{CovenantEngine, CovenantProof};
 #[cfg(not(feature = "ctv"))]
 type CovenantProof = (); // Stub type when CTV feature is disabled
-use blvm_node::Hash;
 use crate::engine::processor::{PaymentError, PaymentProcessor};
+use blvm_node::Hash;
 use blvm_protocol::payment::PaymentOutput;
 use std::collections::HashMap;
 use std::net::SocketAddr;

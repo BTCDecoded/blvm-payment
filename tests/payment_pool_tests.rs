@@ -3,7 +3,6 @@
 //!
 //! Tests pool creation, joining, distribution, exit, and state management.
 
-
 mod common;
 use blvm_payment::engine::covenant::CovenantEngine;
 use blvm_payment::engine::pool::{PoolConfig, PoolEngine};

@@ -738,8 +738,8 @@ mod merchant_key_tests {
 #[cfg(test)]
 mod bip47_address {
     use super::compressed_point;
-    use blvm_node::config::PaymentConfig;
     use crate::engine::processor::PaymentProcessor;
+    use blvm_node::config::PaymentConfig;
 
     fn scalar_point(secret: [u8; 32]) -> [u8; 33] {
         let mut scalar = blvm_secp256k1::scalar::Scalar::zero();

@@ -3,11 +3,11 @@
 #![cfg(feature = "bip70-http")]
 
 use blvm_node::config::PaymentConfig;
+use blvm_node::storage::hashing::hash_to_rpc_hex;
+use blvm_node::{Hash, Transaction};
 use blvm_payment::engine::processor::{PaymentError, PaymentProcessor};
 use blvm_payment::engine::rpc::{PaymentRpc, PaymentTxLookup};
 use blvm_payment::engine::state_machine::{PaymentState, PaymentStateMachine};
-use blvm_node::storage::hashing::hash_to_rpc_hex;
-use blvm_node::{Hash, Transaction};
 use blvm_protocol::block::calculate_tx_id;
 use blvm_protocol::payment::PaymentOutput;
 use serde_json::json;
@@ -21,10 +21,7 @@ struct SeenTx(Transaction);
 
 #[async_trait::async_trait]
 impl PaymentTxLookup for SeenTx {
-    async fn find_tx(
-        &self,
-        hash: &Hash,
-    ) -> Result<Option<(Transaction, bool)>, PaymentError> {
+    async fn find_tx(&self, hash: &Hash) -> Result<Option<(Transaction, bool)>, PaymentError> {
         if calculate_tx_id(&self.0) == *hash {
             Ok(Some((self.0.clone(), true)))
         } else {
@@ -178,8 +175,7 @@ fn chain_rpc_fixture() -> (TempDir, PaymentRpc, [u8; 32]) {
     let processor =
         Arc::new(PaymentProcessor::new(PaymentConfig::default()).expect("payment processor"));
     let state_machine = Arc::new(PaymentStateMachine::new(processor));
-    let rpc = PaymentRpc::with_state_machine(state_machine)
-        .with_tx_lookup(Arc::new(SeenTx(tx)));
+    let rpc = PaymentRpc::with_state_machine(state_machine).with_tx_lookup(Arc::new(SeenTx(tx)));
     (temp_dir, rpc, tx_hash)
 }
 

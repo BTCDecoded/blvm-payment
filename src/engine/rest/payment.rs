@@ -6,8 +6,8 @@
 //! - Querying payment state
 //! - Settlement monitoring
 
-use crate::engine::state_machine::{PaymentState, PaymentStateMachine};
 use crate::engine::rpc::DEFAULT_SAFE_DEPTH;
+use crate::engine::state_machine::{PaymentState, PaymentStateMachine};
 use blvm_node::rpc::rest::types::{
     ApiError, ApiResponse, ErrorDetails, ResponseMeta, rest_error_failed, rest_error_invalid,
 };

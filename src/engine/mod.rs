@@ -21,14 +21,14 @@ pub mod pool;
 #[cfg(feature = "ctv")]
 pub mod congestion;
 
-pub mod p2p;
 pub mod chain;
+pub mod p2p;
 pub mod reorg_handler;
+#[cfg(feature = "bip70-http")]
+pub mod rest;
 pub mod rpc;
 pub mod settlement;
 pub mod state_machine;
-#[cfg(feature = "bip70-http")]
-pub mod rest;
 #[cfg(feature = "ctv")]
 pub mod tx_cache;
 

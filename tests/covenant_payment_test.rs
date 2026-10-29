@@ -4,8 +4,8 @@
 
 use blvm_node::config::PaymentConfig;
 use blvm_payment::engine::processor::PaymentProcessor;
-use blvm_payment::engine::state_machine::PaymentStateMachine;
 use blvm_payment::engine::rpc::PaymentRpc;
+use blvm_payment::engine::state_machine::PaymentStateMachine;
 use blvm_protocol::payment::PaymentOutput;
 use serde_json::json;
 use std::sync::Arc;
@@ -40,7 +40,12 @@ async fn verify_covenant_proof_accepts_valid_proof() {
 
     let script = hex::encode([0x51u8, 0x87]);
     let result = rpc
-        .verify_covenant_proof(&json!([hex::encode(&proof_bytes), 0u32, 100_000u64, script]))
+        .verify_covenant_proof(&json!([
+            hex::encode(&proof_bytes),
+            0u32,
+            100_000u64,
+            script
+        ]))
         .await
         .expect("verify_covenant_proof");
 

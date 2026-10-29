@@ -1,10 +1,10 @@
 //! Settlement monitor start/stop and background monitoring smoke.
 
 use blvm_node::config::PaymentConfig;
+use blvm_node::storage::Storage;
 use blvm_payment::engine::processor::PaymentProcessor;
 use blvm_payment::engine::settlement::SettlementMonitor;
 use blvm_payment::engine::state_machine::PaymentStateMachine;
-use blvm_node::storage::Storage;
 use blvm_protocol::payment::PaymentOutput;
 use std::sync::Arc;
 use std::time::Duration;

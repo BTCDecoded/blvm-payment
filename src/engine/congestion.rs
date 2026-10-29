@@ -289,10 +289,9 @@ impl CongestionManager {
     }
 
     pub fn check_congestion(&self) -> Result<CongestionMetrics, PaymentError> {
-        let (mempool_size, avg_fee_rate, median_fee_rate) =
-            self.observed.ok_or_else(|| {
-                PaymentError::ProcessingError("Mempool manager not available".to_string())
-            })?;
+        let (mempool_size, avg_fee_rate, median_fee_rate) = self.observed.ok_or_else(|| {
+            PaymentError::ProcessingError("Mempool manager not available".to_string())
+        })?;
 
         let estimated_blocks = if avg_fee_rate == 0 {
             0
@@ -456,10 +455,7 @@ impl CongestionManager {
 
     /// Build the covenant template. The module submits `take_outbound` to the node mempool.
     #[cfg(feature = "ctv")]
-    fn enqueue_batch_transaction(
-        &mut self,
-        covenant: &CovenantProof,
-    ) -> Result<(), PaymentError> {
+    fn enqueue_batch_transaction(&mut self, covenant: &CovenantProof) -> Result<(), PaymentError> {
         use blvm_protocol::{OutPoint, Transaction, TransactionInput, TransactionOutput};
 
         let template = &covenant.transaction_template;

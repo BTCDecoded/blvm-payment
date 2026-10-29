@@ -3,7 +3,6 @@
 //!
 //! Tests vault creation, unvaulting, withdrawal, recovery, and state management.
 
-
 mod common;
 use blvm_payment::engine::covenant::CovenantEngine;
 use blvm_payment::engine::processor::PaymentError;

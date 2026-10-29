@@ -7,9 +7,9 @@
 //! - Settlement monitoring
 
 use crate::engine::chain::ChainView;
-use crate::engine::processor::PaymentError;
 #[cfg(feature = "ctv")]
 use crate::engine::covenant::CovenantEngine;
+use crate::engine::processor::PaymentError;
 use crate::engine::state_machine::{PaymentState, PaymentStateMachine};
 use blvm_node::rpc::params::{param_bool_default, param_str};
 use blvm_node::utils::current_timestamp;

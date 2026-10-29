@@ -62,9 +62,7 @@ impl PaymentModule {
     }
 
     fn open_with(db: Option<Arc<dyn Database>>, config: PaymentConfig) -> Result<Self, String> {
-        let processor = Arc::new(
-            PaymentProcessor::new(config).map_err(|error| error.to_string())?,
-        );
+        let processor = Arc::new(PaymentProcessor::new(config).map_err(|error| error.to_string())?);
         #[cfg(feature = "ctv")]
         let state_machine = {
             let machine = PaymentStateMachine::with_storage(Arc::clone(&processor), db.clone())
@@ -96,7 +94,8 @@ impl PaymentModule {
         self.state_machine.set_node_api(Arc::clone(&api));
         *self.chain.lock().expect("payment chain") = Some(Arc::clone(&chain) as Arc<dyn ChainView>);
         let settlement = Arc::new(
-            SettlementMonitor::new(Arc::clone(&self.state_machine)).with_chain(Arc::clone(&chain) as Arc<dyn ChainView>),
+            SettlementMonitor::new(Arc::clone(&self.state_machine))
+                .with_chain(Arc::clone(&chain) as Arc<dyn ChainView>),
         );
         Self {
             rpc: self

@@ -6,9 +6,9 @@
 //! - Recovery paths for key loss scenarios
 //! - Security layers against hot wallet compromises
 
-use blvm_node::Hash;
 use crate::engine::covenant::{CovenantEngine, CovenantProof};
 use crate::engine::processor::PaymentError;
+use blvm_node::Hash;
 use blvm_node::rpc::errors::STORAGE_NOT_AVAILABLE_MSG;
 use blvm_node::utils::current_timestamp;
 use serde::{Deserialize, Serialize};
@@ -553,8 +553,7 @@ impl VaultEngine {
     }
 
     pub(crate) fn known_tip(&self) -> u64 {
-        self.tip_height
-            .load(std::sync::atomic::Ordering::Relaxed)
+        self.tip_height.load(std::sync::atomic::Ordering::Relaxed)
     }
 
     /// Check if withdrawal is eligible based on block height

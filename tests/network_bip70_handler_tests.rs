@@ -1,12 +1,12 @@
 //! Tests for BIP70 Payment Protocol Handler
 
 use blvm_node::config::PaymentConfig;
+use blvm_node::network::protocol::{
+    GetPaymentRequestMessage, PaymentACKMessage, PaymentMessage, PaymentRequestMessage,
+};
 use blvm_payment::engine::p2p::{
     handle_get_payment_request, handle_payment, validate_payment_ack_message,
     validate_payment_request_message,
-};
-use blvm_node::network::protocol::{
-    GetPaymentRequestMessage, PaymentACKMessage, PaymentMessage, PaymentRequestMessage,
 };
 use blvm_payment::engine::processor::PaymentProcessor;
 use blvm_protocol::payment::{Payment, PaymentOutput, PaymentRequest};

@@ -153,7 +153,12 @@ impl SettlementMonitor {
             // Check mempool first
             if let Some(chain) = &self.chain {
                 if let Ok(tx_hash) = self
-                    .check_mempool(chain.as_ref(), payment_id, &expected_outputs, expected_tx_hash)
+                    .check_mempool(
+                        chain.as_ref(),
+                        payment_id,
+                        &expected_outputs,
+                        expected_tx_hash,
+                    )
                     .await
                 {
                     // Transaction found in mempool
@@ -167,7 +172,12 @@ impl SettlementMonitor {
             // Check blockchain for confirmation
             if let Some(chain) = &self.chain {
                 if let Ok(Some((tx_hash, block_hash, confirmations))) = self
-                    .check_blockchain(chain.as_ref(), payment_id, &expected_outputs, expected_tx_hash)
+                    .check_blockchain(
+                        chain.as_ref(),
+                        payment_id,
+                        &expected_outputs,
+                        expected_tx_hash,
+                    )
                     .await
                 {
                     if confirmations >= self.safe_confirmation_depth {
@@ -446,10 +456,7 @@ mod tests {
             let confirmations = (self.tip.saturating_sub(*height) + 1) as u32;
             Ok(Some((tx.clone(), *block, confirmations)))
         }
-        async fn get_transaction(
-            &self,
-            _txid: &Hash,
-        ) -> Result<Option<Transaction>, PaymentError> {
+        async fn get_transaction(&self, _txid: &Hash) -> Result<Option<Transaction>, PaymentError> {
             Ok(None)
         }
         async fn submit(&self, _tx: Transaction) -> Result<bool, PaymentError> {
@@ -472,14 +479,19 @@ mod tests {
         });
         let processor =
             Arc::new(PaymentProcessor::new(PaymentConfig::default()).expect("payment processor"));
-        let monitor = SettlementMonitor::new(Arc::new(PaymentStateMachine::new(processor)))
-            .with_chain(chain);
+        let monitor =
+            SettlementMonitor::new(Arc::new(PaymentStateMachine::new(processor))).with_chain(chain);
         let outputs = vec![PaymentOutput {
             script,
             amount: Some(50_000),
         }];
         let found = monitor
-            .check_blockchain(monitor.chain.as_ref().unwrap().as_ref(), "payment-index", &outputs, Some(txid))
+            .check_blockchain(
+                monitor.chain.as_ref().unwrap().as_ref(),
+                "payment-index",
+                &outputs,
+                Some(txid),
+            )
             .await
             .expect("lookup")
             .expect("confirmed tx");
