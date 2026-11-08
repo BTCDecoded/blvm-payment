@@ -29,7 +29,7 @@ pub async fn handle_get_payment_request(
     let payment_request = processor
         .get_payment_request(&payment_id)
         .await
-        .map_err(|e| anyhow::anyhow!("Failed to get payment request: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Failed to get payment request: {e}"))?;
 
     // Extract signature from embedded PaymentRequest signature field.
     // The PaymentRequest is already signed when created via PaymentProcessor.
@@ -38,8 +38,7 @@ pub async fn handle_get_payment_request(
         Some(sig) if !sig.is_empty() => sig,
         _ => {
             return Err(anyhow::anyhow!(
-                "PaymentRequest for {} is unsigned; refusing to forward unsigned BIP70 payload over P2P",
-                payment_id
+                "PaymentRequest for {payment_id} is unsigned; refusing to forward unsigned BIP70 payload over P2P"
             ));
         }
     };
@@ -84,7 +83,7 @@ pub async fn handle_payment(
             merchant_private_key,
         )
         .await
-        .map_err(|e| anyhow::anyhow!("Payment processing failed: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Payment processing failed: {e}"))?;
 
     // Extract signature from embedded PaymentACK signature field.
     // The PaymentACK is signed by PaymentProtocolServer::process_payment() when a merchant key is
