@@ -391,9 +391,11 @@ impl PaymentProcessor {
             PaymentError::ProcessingError("Module binary not available".to_string())
         })?;
 
-        // Encrypt module
+        // The node master key is the IKM. payment_id and module_hash are public info.
+        let master_key = blvm_node::module::encryption::load_or_create_master_key(modules_dir)
+            .map_err(|e| PaymentError::ProcessingError(format!("Module master key: {e}")))?;
         let (encrypted_binary, nonce) = encryption
-            .encrypt_module(&binary, payment_id, &module_hash)
+            .encrypt_module(&binary, payment_id, &module_hash, &master_key)
             .map_err(|e| PaymentError::ProcessingError(format!("Encryption failed: {e}")))?;
 
         // Create metadata

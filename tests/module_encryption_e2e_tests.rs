@@ -6,7 +6,8 @@ mod common;
 
 use blvm_node::config::PaymentConfig;
 use blvm_node::module::encryption::{
-    EncryptedModuleMetadata, ModuleEncryption, load_encrypted_module, store_encrypted_module,
+    EncryptedModuleMetadata, ModuleEncryption, load_encrypted_module, load_or_create_master_key,
+    store_encrypted_module,
 };
 use blvm_node::module::registry::client::ModuleRegistry;
 use blvm_node::module::registry::manifest::{ModuleManifest, PaymentSection};
@@ -71,6 +72,13 @@ fn create_test_manifest_with_payment(name: &str) -> ModuleManifest {
         config_schema: HashMap::new(),
         binary: None,
         downloads: HashMap::new(),
+        network: Default::default(),
+        replaces: Vec::new(),
+        provides_apis: Vec::new(),
+        requires_apis: Vec::new(),
+        min_node_version: None,
+        services: Vec::new(),
+        fee_estimators: Vec::new(),
         signatures: Some(signature_section),
         payment: Some(payment_section),
     }
@@ -215,12 +223,14 @@ async fn test_full_encrypted_module_purchase_flow() {
         }
 
         // Round-trip decrypt matches original binary
+        let master_key = load_or_create_master_key(&modules_dir).unwrap();
         let decrypted = encryption
             .decrypt_module(
                 &encrypted_binary,
                 &metadata.nonce,
                 &payment_id,
                 &module_hash,
+                &master_key,
             )
             .unwrap();
         assert_eq!(decrypted, module_binary);
@@ -249,8 +259,9 @@ async fn test_encrypted_module_propagation() {
     };
 
     // Encrypt module
+    let master_key = load_or_create_master_key(&modules_dir).unwrap();
     let (encrypted_binary, nonce) = encryption
-        .encrypt_module(module_binary, payment_id, &module_hash)
+        .encrypt_module(module_binary, payment_id, &module_hash, &master_key)
         .unwrap();
 
     // Store encrypted module (simulating what happens on server)
@@ -289,6 +300,7 @@ async fn test_encrypted_module_propagation() {
             &loaded_metadata.nonce,
             payment_id,
             &module_hash_array,
+            &master_key,
         )
         .unwrap();
     assert_eq!(decrypted, module_binary);
@@ -315,8 +327,9 @@ async fn test_payment_state_transitions() {
         h
     };
 
+    let master_key = load_or_create_master_key(&modules_dir).unwrap();
     let (encrypted_binary, nonce) = encryption
-        .encrypt_module(module_binary, payment_id, &module_hash)
+        .encrypt_module(module_binary, payment_id, &module_hash, &master_key)
         .unwrap();
 
     let metadata = EncryptedModuleMetadata {
@@ -389,6 +402,7 @@ async fn test_payment_state_transitions() {
             &metadata.nonce,
             payment_id,
             &module_hash_array,
+            &master_key,
         )
         .unwrap();
     assert_eq!(decrypted, module_binary);

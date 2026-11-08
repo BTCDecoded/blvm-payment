@@ -144,6 +144,13 @@ async fn test_bip47_derivation_error_paths() {
         signatures: None,
         binary: None,
         downloads: std::collections::HashMap::new(),
+        network: Default::default(),
+        replaces: Vec::new(),
+        provides_apis: Vec::new(),
+        requires_apis: Vec::new(),
+        min_node_version: None,
+        services: Vec::new(),
+        fee_estimators: Vec::new(),
         payment: Some(PaymentSection {
             required: true,
             price_sats: Some(10000),
