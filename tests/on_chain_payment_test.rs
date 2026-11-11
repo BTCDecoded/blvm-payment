@@ -193,9 +193,9 @@ async fn verify_on_chain_payment_by_tx_chain_only() {
         .await
         .expect("verify_on_chain_payment_by_tx");
 
-    assert_eq!(result["verified"], true);
-    assert_eq!(result["state"], "in_mempool");
-    assert!(result["amount_sats"].as_u64().unwrap() >= min_amount);
+    assert_eq!(result["verified"], false);
+    assert_eq!(result["state"], "request_not_found");
+    assert!(result["amount_sats"].is_null());
 }
 
 #[tokio::test]
@@ -212,7 +212,7 @@ async fn verify_on_chain_payment_by_tx_underpaid() {
         .expect("verify_on_chain_payment_by_tx");
 
     assert_eq!(result["verified"], false);
-    assert_eq!(result["state"], "underpaid");
+    assert_eq!(result["state"], "request_not_found");
 }
 
 #[tokio::test]

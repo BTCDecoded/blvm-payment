@@ -239,8 +239,10 @@ impl VaultEngine {
             //   The deposit covenant commits to an intermediate "vault holder" output.
             //   The holder script is OP_RETURN <32-byte vault_id digest>, which
             //   is unspendable on-chain but serves as a unique, verifiable commitment
-            //   inside the covenant-proof system.  When the operator calls unvault(),
-            //   a real unvault covenant over the final destination is created.
+            //   inside the covenant-proof system. The amount stays on the vault
+            //   record. The placeholder output carries no value, so funding the
+            //   template does not burn the deposit. When the operator calls
+            //   unvault(), a real unvault covenant over the final destination is created.
             //
             // require_unvault = false → single-step: deposit directly to withdrawal_script.
             let deposit_outputs = if config.require_unvault {
@@ -252,7 +254,7 @@ impl VaultEngine {
                 holder_script.extend_from_slice(&holder_hash);
                 vec![PaymentOutput {
                     script: holder_script,
-                    amount: Some(deposit_amount),
+                    amount: None,
                 }]
             } else {
                 // Direct withdrawal (no unvault step)

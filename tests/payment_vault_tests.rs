@@ -38,6 +38,9 @@ fn test_create_vault() {
     assert_eq!(vault_state.deposit_amount, deposit_amount);
     assert_eq!(vault_state.state, VaultLifecycle::Deposited);
     assert!(vault_state.deposit_covenant.template_hash.len() == 32);
+    let placeholder = &vault_state.deposit_covenant.transaction_template.outputs[0];
+    assert_eq!(placeholder.value, 0);
+    assert_eq!(placeholder.script_pubkey[0], 0x6a);
     assert!(vault_state.unvault_covenant.is_none());
     assert!(vault_state.withdrawal_covenant.is_none());
 }

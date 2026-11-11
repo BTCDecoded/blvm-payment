@@ -429,9 +429,8 @@ impl PaymentRpc {
     ///
     /// Params: `[payment_request_id, tx_hash_hex, min_amount_sats]`
     ///
-    /// When the payment request exists locally, outputs from the stored BIP70 request are used.
-    /// Otherwise the tx is resolved from mempool/chain and total output value must meet
-    /// `min_amount_sats` (weaker binding — see ops docs).
+    /// The stored BIP70 outputs are required. A transaction is verified only when
+    /// those scripts and amounts are present. A missing request fails closed.
     pub async fn verify_on_chain_payment_by_tx(
         &self,
         params: &Value,
@@ -477,10 +476,18 @@ impl PaymentRpc {
             }
         }
 
-        let expected_outputs = state_machine
+        let Ok(expected_outputs) = state_machine
             .payment_request_outputs(&payment_request_id)
             .await
-            .ok();
+        else {
+            return Ok(json!({
+                "verified": false,
+                "state": "request_not_found",
+                "amount_sats": null,
+                "tx_hash": tx_hash_hex,
+                "reason": "payment request outputs are not available on this node",
+            }));
+        };
 
         let Some((tx, chain_state)) = self.lookup_tx_chain_state(&tx_hash).await? else {
             return Ok(json!({
@@ -492,20 +499,16 @@ impl PaymentRpc {
             }));
         };
 
-        let amount_sats = if let Some(ref outputs) = expected_outputs {
-            if !transaction_matches_outputs(&tx, outputs) {
-                return Ok(json!({
-                    "verified": false,
-                    "state": "output_mismatch",
-                    "amount_sats": null,
-                    "tx_hash": tx_hash_hex,
-                    "reason": "transaction outputs do not match payment request",
-                }));
-            }
-            outputs.iter().filter_map(|o| o.amount).sum()
-        } else {
-            tx_output_total_sats(&tx)
-        };
+        if !transaction_matches_outputs(&tx, &expected_outputs) {
+            return Ok(json!({
+                "verified": false,
+                "state": "output_mismatch",
+                "amount_sats": null,
+                "tx_hash": tx_hash_hex,
+                "reason": "transaction outputs do not match payment request",
+            }));
+        }
+        let amount_sats: u64 = expected_outputs.iter().filter_map(|o| o.amount).sum();
 
         if amount_sats < min_amount_sats {
             return Ok(json!({
@@ -1357,10 +1360,6 @@ enum TxChainState {
 fn decode_tx_hash(hex_str: &str) -> Result<blvm_node::Hash, PaymentError> {
     blvm_node::storage::hashing::hash_from_rpc_hex(hex_str)
         .map_err(|e| PaymentError::ProcessingError(format!("Invalid tx_hash hex: {e}")))
-}
-
-fn tx_output_total_sats(tx: &Transaction) -> u64 {
-    tx.outputs.iter().map(|o| o.value.max(0) as u64).sum()
 }
 
 fn transaction_matches_outputs(tx: &Transaction, expected_outputs: &[PaymentOutput]) -> bool {
