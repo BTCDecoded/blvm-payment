@@ -2,7 +2,7 @@
 name = "blvm-payment"
 version = "0.1.7"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.91"
 authors = ["Bitcoin Commons Contributors"]
 description = "Payment request module. Opt-in process. Not linked into the blvm binary."
 license = "MIT"
