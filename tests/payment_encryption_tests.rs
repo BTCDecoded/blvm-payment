@@ -73,6 +73,7 @@ fn create_test_manifest_with_payment(name: &str) -> ModuleManifest {
         provides_apis: Vec::new(),
         requires_apis: Vec::new(),
         min_node_version: None,
+        ipc_protocol: 0,
         services: Vec::new(),
         fee_estimators: Vec::new(),
         signatures: Some(signature_section),

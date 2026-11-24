@@ -363,10 +363,11 @@ impl CongestionManager {
 
         // A measured pool whose average is at or below the target can broadcast.
         // A missing mempool or an empty rate list is not evidence that fees are low.
-        if let Ok(metrics) = self.check_congestion() {
-            if metrics.avg_fee_rate > 0 && metrics.avg_fee_rate <= batch.target_fee_rate {
-                return Ok(true);
-            }
+        if let Ok(metrics) = self.check_congestion()
+            && metrics.avg_fee_rate > 0
+            && metrics.avg_fee_rate <= batch.target_fee_rate
+        {
+            return Ok(true);
         }
 
         Ok(false)

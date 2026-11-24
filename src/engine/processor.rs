@@ -299,23 +299,21 @@ impl PaymentProcessor {
         info!("Processed payment: {}", payment_id);
 
         // Check if this is a module payment and encrypt module
-        if let Some(merchant_data) = &request.payment_details.merchant_data {
-            if let Ok(metadata) = serde_json::from_slice::<serde_json::Value>(merchant_data) {
-                if metadata
-                    .get("payment_type")
-                    .and_then(|v| v.as_str())
-                    .map(|s| s == "module_payment")
-                    .unwrap_or(false)
-                {
-                    // This is a module payment - encrypt the module
-                    if let Err(e) = self
-                        .encrypt_module_for_payment(&payment_id, &metadata)
-                        .await
-                    {
-                        warn!("Failed to encrypt module for payment {}: {}", payment_id, e);
-                        // Don't fail the payment if encryption fails - log and continue
-                    }
-                }
+        if let Some(merchant_data) = &request.payment_details.merchant_data
+            && let Ok(metadata) = serde_json::from_slice::<serde_json::Value>(merchant_data)
+            && metadata
+                .get("payment_type")
+                .and_then(|v| v.as_str())
+                .map(|s| s == "module_payment")
+                .unwrap_or(false)
+        {
+            // This is a module payment - encrypt the module
+            if let Err(e) = self
+                .encrypt_module_for_payment(&payment_id, &metadata)
+                .await
+            {
+                warn!("Failed to encrypt module for payment {}: {}", payment_id, e);
+                // Don't fail the payment if encryption fails - log and continue
             }
         }
 

@@ -177,18 +177,16 @@ impl PaymentReorgHandler {
         expected_outputs: Option<&[blvm_protocol::payment::PaymentOutput]>,
         tx_hash: blvm_node::Hash,
     ) {
-        if let (Some(monitor), Some(outputs)) = (settlement_monitor, expected_outputs) {
-            if !outputs.is_empty() {
-                if let Err(error) = monitor
-                    .start_monitoring(payment_id, outputs.to_vec(), Some(tx_hash))
-                    .await
-                {
-                    warn!(
-                        "Reorg: failed to restart monitoring for payment {}: {}",
-                        payment_id, error
-                    );
-                }
-            }
+        if let (Some(monitor), Some(outputs)) = (settlement_monitor, expected_outputs)
+            && !outputs.is_empty()
+            && let Err(error) = monitor
+                .start_monitoring(payment_id, outputs.to_vec(), Some(tx_hash))
+                .await
+        {
+            warn!(
+                "Reorg: failed to restart monitoring for payment {}: {}",
+                payment_id, error
+            );
         }
     }
 

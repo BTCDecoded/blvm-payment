@@ -151,8 +151,8 @@ impl SettlementMonitor {
             }
 
             // Check mempool first
-            if let Some(chain) = &self.chain {
-                if let Ok(tx_hash) = self
+            if let Some(chain) = &self.chain
+                && let Ok(tx_hash) = self
                     .check_mempool(
                         chain.as_ref(),
                         payment_id,
@@ -160,18 +160,17 @@ impl SettlementMonitor {
                         expected_tx_hash,
                     )
                     .await
-                {
-                    // Transaction found in mempool
-                    let _ = self
-                        .state_machine
-                        .mark_in_mempool(payment_id, tx_hash)
-                        .await;
-                }
+            {
+                // Transaction found in mempool
+                let _ = self
+                    .state_machine
+                    .mark_in_mempool(payment_id, tx_hash)
+                    .await;
             }
 
             // Check blockchain for confirmation
-            if let Some(chain) = &self.chain {
-                if let Ok(Some((tx_hash, block_hash, confirmations))) = self
+            if let Some(chain) = &self.chain
+                && let Ok(Some((tx_hash, block_hash, confirmations))) = self
                     .check_blockchain(
                         chain.as_ref(),
                         payment_id,
@@ -179,21 +178,19 @@ impl SettlementMonitor {
                         expected_tx_hash,
                     )
                     .await
-                {
-                    if confirmations >= self.safe_confirmation_depth {
-                        let _ = self
-                            .state_machine
-                            .mark_settled(
-                                payment_id,
-                                tx_hash,
-                                block_hash,
-                                confirmations,
-                                Some(expected_outputs.to_vec()),
-                            )
-                            .await;
-                        break;
-                    }
-                }
+                && confirmations >= self.safe_confirmation_depth
+            {
+                let _ = self
+                    .state_machine
+                    .mark_settled(
+                        payment_id,
+                        tx_hash,
+                        block_hash,
+                        confirmations,
+                        Some(expected_outputs.to_vec()),
+                    )
+                    .await;
+                break;
             }
 
             // Wait before next check
@@ -212,14 +209,14 @@ impl SettlementMonitor {
         expected_outputs: &[PaymentOutput],
         expected_tx_hash: Option<Hash>,
     ) -> Result<Hash, PaymentError> {
-        if let Some(expected_hash) = expected_tx_hash {
-            if let Some(tx) = chain.mempool_transaction(&expected_hash).await? {
-                #[cfg(feature = "ctv")]
-                if let Some(ref cache) = self.tx_cache {
-                    cache.store(expected_hash, tx);
-                }
-                return Ok(expected_hash);
+        if let Some(expected_hash) = expected_tx_hash
+            && let Some(tx) = chain.mempool_transaction(&expected_hash).await?
+        {
+            #[cfg(feature = "ctv")]
+            if let Some(ref cache) = self.tx_cache {
+                cache.store(expected_hash, tx);
             }
+            return Ok(expected_hash);
         }
 
         for tx in chain.mempool_transactions().await? {

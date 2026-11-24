@@ -399,12 +399,12 @@ impl VaultEngine {
         #[cfg(feature = "ctv")]
         {
             // Check if withdrawal is allowed
-            if let Some(available_at) = vault_state.withdrawal_available_at {
-                if current_block_height < available_at {
-                    return Err(PaymentError::ProcessingError(format!(
-                        "Withdrawal not yet available. Available at block {available_at}, current: {current_block_height}"
-                    )));
-                }
+            if let Some(available_at) = vault_state.withdrawal_available_at
+                && current_block_height < available_at
+            {
+                return Err(PaymentError::ProcessingError(format!(
+                    "Withdrawal not yet available. Available at block {available_at}, current: {current_block_height}"
+                )));
             }
 
             // Check state
@@ -422,13 +422,13 @@ impl VaultEngine {
             }
 
             // Check max withdrawal if configured
-            if let Some(max) = vault_state.config.max_withdrawal {
-                if vault_state.deposit_amount > max {
-                    return Err(PaymentError::ProcessingError(format!(
-                        "Withdrawal amount {} exceeds maximum {}",
-                        vault_state.deposit_amount, max
-                    )));
-                }
+            if let Some(max) = vault_state.config.max_withdrawal
+                && vault_state.deposit_amount > max
+            {
+                return Err(PaymentError::ProcessingError(format!(
+                    "Withdrawal amount {} exceeds maximum {}",
+                    vault_state.deposit_amount, max
+                )));
             }
 
             use blvm_protocol::payment::PaymentOutput;

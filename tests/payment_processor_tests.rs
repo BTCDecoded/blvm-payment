@@ -149,6 +149,7 @@ async fn test_bip47_derivation_error_paths() {
         provides_apis: Vec::new(),
         requires_apis: Vec::new(),
         min_node_version: None,
+        ipc_protocol: 0,
         services: Vec::new(),
         fee_estimators: Vec::new(),
         payment: Some(PaymentSection {
